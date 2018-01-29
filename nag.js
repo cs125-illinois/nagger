@@ -87,11 +87,15 @@ Promise.resolve()
     expect(students).to.be.an('object')
     log.debug(`${ _.keys(students).length } active students`)
 
+    log.debug(configuration.attributes.query)
     let toNag = sift(configuration.attributes.query, _.values(students))
     log.debug(`${ toNag.length } students to nag`)
 
     let forTemplate = _.omit(_.cloneDeep(configuration.attributes), ['query', 'subject'])
     forTemplate.not_count = _.keys(students).length - toNag.length
+    if (config.count_only) {
+      process.exit(0)
+    }
 
     let transporter
     if (!(config.dry_run)) {

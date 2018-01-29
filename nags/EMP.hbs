@@ -1,0 +1,56 @@
+---
+subject: Please Attend EMP
+number: 0
+query:
+  $or:
+    - 'MPGrades.MP0': false
+    - "MPGrades.MP0":
+        $lte: 60
+---
+{{> header }}
+
+<p>
+<!-- -->
+You are receiving this email because, according to our records, you either did
+not turn in or did not do well on
+<!-- -->
+<a href="https://cs125.cs.illinois.edu/MP/{{ number }}/">MP{{ number }}</a>.
+<!-- -->
+</p>
+
+<p>
+<!-- -->
+<strong>We suggest that you attend this week's
+<!-- -->
+<a href="https://cs125.cs.illinois.edu/info/resources/#emp">
+<!-- -->
+even more practice session </a>.
+<!-- -->
+</strong>
+<!-- -->
+EMP is tomorrow (Monday) from 5&ndash;7PM in Siebel 1404.
+<!-- -->
+EMP is a great chance to get more help in an setting where we can provide you
+with individualized support.
+<!-- -->
+</p>
+
+<p>
+<!-- -->
+<strong>If you can't come to EMP, please find another way to get help.</strong>
+<!-- -->
+Talk to a fellow student, a course assistant, or your TA; come to
+<!-- -->
+<a href="https://cs125.cs.illinois.edu/info/resources/#hours">office hours</a>;
+<!-- -->
+or post on the
+<!-- -->
+<a href="https://cs125-forum.cs.illinois.edu/">course forum</a>.
+<!-- -->
+We really want you to succeed in this course.
+<!-- -->
+But CS 125 moves fast, and we don't want you getting any further behind.
+<!-- -->
+</p>
+
+{{> footer }}
