@@ -10,6 +10,13 @@ const moment = require('moment')
 const handlebars = require('handlebars')
 const path = require('path')
 const replaceExt = require('replace-ext')
+const frontMatter = require('front-matter')
+const sift = require('sift')
+const promptly = require('promptly')
+
+const htmlMinifier = require('html-minifier')
+const html_to_text = require('html-to-text')
+const nodemailer = require('nodemailer')
 
 const bunyan = require('bunyan')
 const log = bunyan.createLogger({
@@ -25,10 +32,12 @@ const log = bunyan.createLogger({
   ]
 })
 let defaults = {
+  username: 'challen@illinois.edu',
   cache: '.cache/students.json',
   stale: 'PT30M',
   helpers: 'layouts/helpers',
-  partials: 'layouts/partials'
+  partials: 'layouts/partials',
+  bcc: [ 'challen@illinois.edu' ]
 }
 let argv = require('minimist')(process.argv.slice(2))
 let config = _.extend(
@@ -56,6 +65,13 @@ log.debug(_.omit(config))
 
 Promise.resolve()
   .then(async () => {
+    let configuration = frontMatter((await fs.readFile(argv._[0])).toString())
+    log.debug(configuration)
+
+    await loadHandlebars()
+    console.log(configuration.body)
+    let template = handlebars.compile(configuration.body)
+
     let students
     try {
       expect(config.reload, 'forced reload').to.not.be.ok
@@ -69,8 +85,65 @@ Promise.resolve()
       students = await update(config)
     }
     expect(students).to.be.an('object')
+    log.debug(`${ _.keys(students).length } active students`)
 
-    await loadHandlebars()
+    let toNag = sift(configuration.attributes.query, _.values(students))
+    log.debug(`${ toNag.length } students to nag`)
+
+    let forTemplate = _.omit(_.cloneDeep(configuration.attributes), ['query', 'subject'])
+    forTemplate.not_count = _.keys(students).length - toNag.length
+
+    let transporter
+    if (!(config.dry_run)) {
+      transporter = nodemailer.createTransport({
+        host: 'smtp.sendgrid.net', port: 587, secure: false,
+        auth: { user: config.username, pass: process.env.SENDGRID }
+      })
+      await transporter.verify()
+    }
+
+    if (!config.dry_run && !config.send_one_test) {
+      let reset = await promptly.choose(`Do you want to send ${ toNag.length } emails?`,
+        ['yes', 'no'])
+      if (reset === 'no') {
+        log.debug(`Cancelled by user`)
+        process.exit(0)
+      }
+    }
+
+    for (student of toNag) {
+      let thisTemplate = _.extend(_.cloneDeep(forTemplate), student)
+      let html = template(thisTemplate)
+      html = htmlMinifier.minify(html, {
+        collapseWhitespace: true,
+        conservativeCollapse: true,
+        removeComments: true
+      })
+      let text = html_to_text.fromString(html, {
+        wordwrap: false,
+        hideLinkHrefIfSameAsText: true,
+        uppercaseHeadings: false,
+        noAnchorUrl: false
+      })
+      let email = {
+        from: '"CSE 125 Reminder Robot" <robot@cs125.cs.illinois.edu>',
+        bcc: config.bcc.join(","),
+        subject: configuration.attributes.subject,
+        html: html,
+        text: text
+      }
+      log.debug(email)
+      if (config.dry_run) {
+        break
+      }
+      if (!config.send_one_test) {
+        //email.to = student.email
+      }
+      await transporter.sendMail(email)
+      if (config.send_one_test) {
+        break
+      }
+    }
   }).catch(err => {
     throw (err)
   })
@@ -163,7 +236,7 @@ let update = async (config) => {
 let loadHandlebars = async () => {
   let files = await fs.readdir(config.helpers)
   _.each(files, file => {
-    if (!(file.endsWith('.hbs'))) {
+    if (!(file.endsWith('.js'))) {
       return
     }
     let helperContents = require(path.resolve(path.join(config.helpers, file)))
@@ -183,6 +256,6 @@ let loadHandlebars = async () => {
       return
     }
     let partial = await fs.readFile(path.resolve(path.join(config.partials, file)))
-    handlebars.registerPartial(replaceExt(file, ''), partial)
+    handlebars.registerPartial(replaceExt(file, ''), partial.toString())
   })
 }

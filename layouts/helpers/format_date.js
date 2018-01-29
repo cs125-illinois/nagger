@@ -2,10 +2,10 @@ const moment = require('moment-timezone')
 const common_formats = {
   normal: "M/D/YYYY",
   slides: "ddd M.D.YYYY",
-  full: "M/D/YYYY [@] HH:mm [EDT]",
+  full: "M/D/YYYY [@] HH:mm [CDT]",
   name: "DD MMM YYYY",
   proposal: "M/YYYY",
-  blog: "DD MMM YYYY [at] HH:mm [EDT]",
+  blog: "DD MMM YYYY [at] HH:mm [CDT]",
   xml: "ddd, DD MMM YYYY HH:mm:ss ZZ",
   file: "YYYY-MM-DD"
 }
@@ -18,6 +18,6 @@ module.exports = (datetime, format, utc) => {
   if (utc) {
     return moment.utc(datetime).format(format);
   } else {
-    return moment.utc(datetime).tz("America/Chicago").format(format);
+    return moment.tz(datetime, "America/Chicago").format(format);
   }
 }
