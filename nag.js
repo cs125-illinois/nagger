@@ -115,6 +115,8 @@ Promise.resolve()
       }
     }
 
+    let client = await mongo.connect(process.env.MONGO)
+    let nagger = client.db(config.database).collection('nagger')
     for (student of toNag) {
       let thisTemplate = _.extend(_.cloneDeep(forTemplate), student)
       let html = template(thisTemplate)
@@ -144,10 +146,17 @@ Promise.resolve()
         //email.to = student.email
       }
       await transporter.sendMail(email)
+      await nagger.save({
+        email: student.email,
+        sent: moment().toDate(),
+        subject: configuration.attributes.subject,
+        html: html
+      })
       if (config.send_one_test) {
         break
       }
     }
+    client.close()
   }).catch(err => {
     throw (err)
   })
