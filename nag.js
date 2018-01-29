@@ -7,6 +7,9 @@ const jsYAML = require('js-yaml')
 const fs = require('fs-extra')
 const mongo = require('mongodb').MongoClient
 const moment = require('moment')
+const handlebars = require('handlebars')
+const path = require('path')
+const replaceExt = require('replace-ext')
 
 const bunyan = require('bunyan')
 const log = bunyan.createLogger({
@@ -23,7 +26,9 @@ const log = bunyan.createLogger({
 })
 let defaults = {
   cache: '.cache/students.json',
-  stale: 'PT30M'
+  stale: 'PT30M',
+  helpers: 'layouts/helpers',
+  partials: 'layouts/partials'
 }
 let argv = require('minimist')(process.argv.slice(2))
 let config = _.extend(
@@ -53,6 +58,7 @@ Promise.resolve()
   .then(async () => {
     let students
     try {
+      expect(config.reload, 'forced reload').to.not.be.ok
       let saved = JSON.parse(await fs.readFile(config.cache))
       students = saved.students
       if (moment() - moment(saved.saved) > moment.duration(config.stale)) {
@@ -63,6 +69,10 @@ Promise.resolve()
       students = await update(config)
     }
     expect(students).to.be.an('object')
+
+    await loadHandlebars()
+  }).catch(err => {
+    throw (err)
   })
 
 let update = async (config) => {
@@ -71,10 +81,11 @@ let update = async (config) => {
   let students = _.keyBy(await people.find({
     active: true, staff: false
   }).project({
-    email: 1, _id: 0
+    email: 1, 'name.full': 1, _id: 0
   }).toArray(), 'email')
 
   _.each(students, student => {
+    student.name = student.name.full
     student.progress = {}
   })
   let MPs = {}
@@ -147,4 +158,31 @@ let update = async (config) => {
   }, null, 2))
 
   return students
+}
+
+let loadHandlebars = async () => {
+  let files = await fs.readdir(config.helpers)
+  _.each(files, file => {
+    if (!(file.endsWith('.hbs'))) {
+      return
+    }
+    let helperContents = require(path.resolve(path.join(config.helpers, file)))
+    switch (typeof helperContents) {
+      case 'function':
+        let templateName = helperContents.name || file.split('.').shift()
+        handlebars.registerHelper(templateName, helperContents)
+        break
+      case 'object':
+        handlebars.registerHelper(helperContents)
+        break
+    }
+  })
+  files = await fs.readdir(config.partials)
+  _.each(files, async file => {
+    if (!(file.endsWith('.hbs'))) {
+      return
+    }
+    let partial = await fs.readFile(path.resolve(path.join(config.partials, file)))
+    handlebars.registerPartial(replaceExt(file, ''), partial)
+  })
 }
