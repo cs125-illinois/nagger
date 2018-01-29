@@ -117,10 +117,11 @@ Promise.resolve()
 
     let client = await mongo.connect(process.env.MONGO)
     let nagger = client.db(config.database).collection('nagger')
+    let confirmed = false
     for (student of toNag) {
       let thisTemplate = _.extend(_.cloneDeep(forTemplate), student)
-      let html = template(thisTemplate)
-      html = htmlMinifier.minify(html, {
+      let originalHTML = template(thisTemplate)
+      let html = htmlMinifier.minify(originalHTML, {
         collapseWhitespace: true,
         conservativeCollapse: true,
         removeComments: true
@@ -142,19 +143,28 @@ Promise.resolve()
       if (config.dry_run) {
         break
       }
+      console.log(originalHTML)
+      if (!confirmed) {
+        let confirm = await promptly.choose(`Does the email above look OK?`, ['yes', 'no'])
+        if (confirm === 'no') {
+          log.debug(`Cancelled by user`)
+          process.exit(0)
+        }
+        confirmed = true
+      }
       if (!config.send_one_test) {
-        //email.to = student.email
+        email.to = student.email
       }
       await transporter.sendMail(email)
+      if (config.send_one_test) {
+        break
+      }
       await nagger.save({
         email: student.email,
         sent: moment().toDate(),
         subject: configuration.attributes.subject,
         html: html
       })
-      if (config.send_one_test) {
-        break
-      }
     }
     client.close()
   }).catch(err => {
