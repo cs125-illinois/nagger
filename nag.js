@@ -175,7 +175,7 @@ let update = async (config) => {
   let client = await mongo.connect(process.env.MONGO)
   let people = client.db(config.database).collection('people')
   let students = _.keyBy(await people.find({
-    active: true, staff: false
+    student: true
   }).project({
     email: 1, 'name.full': 1, _id: 0
   }).toArray(), 'email')
