@@ -3,9 +3,15 @@ subject: Please Start MP1
 number: 1
 verb: started
 deadline: "2018-02-02T17:00:00"
+early:
+  points: 10
+  threshold: 20
+  deadline: "2018-01-30T17:00:00"
 query:
-  'progress.MP1': false
-  'MPGrades.MP1': false
+  $or:
+    - 'MPGrades.MP1': false
+    - 'MPGrades.MP1':
+        $lt: 20
 ---
 {{> header }}
 

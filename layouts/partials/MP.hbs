@@ -1,7 +1,6 @@
 <p>
 <!-- -->
-You are receiving this email because, according to our records, you have not
-{{ verb }}
+This email is to remind you to get started on
 <!-- -->
 <a href="https://cs125.cs.illinois.edu/MP/{{ number }}/">MP{{ number }}</a>.
 <!-- -->
@@ -9,10 +8,24 @@ MP{{ number }} is due <strong>{{ format_date deadline "full" false }}.</strong>
 <!-- -->
 Late solutions will not receive full credit.
 <!-- -->
-Please get started!
+Please get going!
 <!-- -->
-{{ not_count }} CS 125 students have started MP{{ number }}.
+{{ not_count }} CS 125 students are off to a good start on MP{{ number }}.
+<!-- -->
+And the best time to come in for help is early in the week.
 </p>
+
+{{#if early }}
+MP{{ number }} also has an early deadline.
+<!-- -->
+You will receive {{ early.points }} for submitting something for MP{{ number
+}} that earns <em>at least</em> {{ early.threshold }} by
+<!-- -->
+<strong>{{ format_date early.deadline "full" false }}.</strong>
+<!-- -->
+Don't lose out on these points!
+</p>
+{{/if}}
 
 {{{ contents }}}
 

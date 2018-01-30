@@ -2,7 +2,7 @@ const moment = require('moment-timezone')
 const common_formats = {
   normal: "M/D/YYYY",
   slides: "ddd M.D.YYYY",
-  full: "M/D/YYYY [@] HH:mm [CDT]",
+  full: "dddd M/D/YYYY [@] HH:mm [CDT]",
   name: "DD MMM YYYY",
   proposal: "M/YYYY",
   blog: "DD MMM YYYY [at] HH:mm [CDT]",
