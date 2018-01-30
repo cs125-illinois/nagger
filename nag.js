@@ -69,7 +69,6 @@ Promise.resolve()
     log.debug(configuration)
 
     await loadHandlebars()
-    console.log(configuration.body)
     let template = handlebars.compile(configuration.body)
 
     let students
@@ -86,6 +85,9 @@ Promise.resolve()
     }
     expect(students).to.be.an('object')
     log.debug(`${ _.keys(students).length } active students`)
+    if (config.students_only) {
+      process.exit(0)
+    }
 
     log.debug(configuration.attributes.query)
     let toNag = sift(configuration.attributes.query, _.values(students))
@@ -242,6 +244,37 @@ let update = async (config) => {
     _.each(_.keys(MPs), MP => {
       if (!(student.MPGrades[MP])) {
         student.MPGrades[MP] = false
+      }
+    })
+  })
+
+  let quizzes = {}
+  _.each(students, student => {
+    student.quizGrades = {}
+  })
+  let quizGrades = client.db(config.database).collection('quizGrades')
+  _.each(await quizGrades.find({
+    latest: true
+  }).toArray(), grade => {
+    quizzes[grade.name] = true
+    let student
+    try {
+      student = students[grade.email]
+      expect(student).to.be.ok
+    } catch (error) {
+      return
+    }
+    if (!(student.quizGrades[grade.name])) {
+      student.quizGrades[grade.name] = 0
+    }
+    if (grade.score > student.quizGrades[grade.name]) {
+      student.quizGrades[grade.name] = grade.score
+    }
+  })
+  _.each(students, student => {
+    _.each(_.keys(quizzes), quiz => {
+      if (!(student.quizGrades[quiz])) {
+        student.quizGrades[quiz] = false
       }
     })
   })
