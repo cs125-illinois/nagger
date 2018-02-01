@@ -123,6 +123,12 @@ Promise.resolve()
     for (student of toNag) {
       let thisTemplate = _.extend(_.cloneDeep(forTemplate), student)
       let originalHTML = template(thisTemplate)
+      let showHTML = htmlMinifier.minify(originalHTML, {
+        preserveLineBreaks: true,
+        collapseWhitespace: true,
+        conservativeCollapse: true,
+        removeComments: true
+      })
       let html = htmlMinifier.minify(originalHTML, {
         collapseWhitespace: true,
         conservativeCollapse: true,
@@ -145,8 +151,8 @@ Promise.resolve()
       if (config.dry_run) {
         break
       }
-      console.log(originalHTML)
       if (!confirmed) {
+        console.log(showHTML)
         let confirm = await promptly.choose(`Does the email above look OK?`, ['yes', 'no'])
         if (confirm === 'no') {
           log.debug(`Cancelled by user`)
