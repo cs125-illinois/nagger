@@ -1,11 +1,12 @@
 ---
 subject: Please Attend EMP
-number: 0
 query:
   $or:
-    - 'MPGrades.MP0': false
-    - "MPGrades.MP0":
+    - 'MPGrades.MP2': false
+    - "MPGrades.MP2":
         $lte: 60
+    - "quizGrades.Q2":
+        $lte: 73
 ---
 {{> header }}
 
@@ -14,7 +15,9 @@ query:
 You are receiving this email because, according to our records, you either did
 not turn in or did not do well on
 <!-- -->
-<a href="https://cs125.cs.illinois.edu/MP/{{ number }}/">MP{{ number }}</a>.
+<a href="https://cs125.cs.illinois.edu/MP/2/">MP2</a>,
+<!-- -->
+or did not do well on Quiz 2.
 <!-- -->
 </p>
 
@@ -49,7 +52,7 @@ or post on the
 <!-- -->
 We really want you to succeed in this course.
 <!-- -->
-But CS 125 moves fast, and we don't want you getting any further behind.
+But CS 125 moves fast, and we also don't want you to get behind.
 <!-- -->
 </p>
 
