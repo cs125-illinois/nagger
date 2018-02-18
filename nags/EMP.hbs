@@ -2,22 +2,22 @@
 subject: Please Attend EMP
 query:
   $or:
-    - 'MPGrades.MP2': false
-    - "MPGrades.MP2":
-        $lte: 60
-    - "quizGrades.Q2":
-        $lte: 73
+    - 'MPGrades.MP3': false
+    - 'MPGrades.MP3':
+        $lt: 40
+    - "quizGrades.Q3":
+        $lte: 80
 ---
 {{> header }}
 
 <p>
 <!-- -->
 You are receiving this email because, according to our records, you either did
-not turn in or did not do well on
+not make the
 <!-- -->
-<a href="https://cs125.cs.illinois.edu/MP/2/">MP2</a>,
+<a href="https://cs125.cs.illinois.edu/MP/3/">MP3</a> early deadline
 <!-- -->
-or did not do well on Quiz 2.
+or did not do well on Quiz 3.
 <!-- -->
 </p>
 
@@ -31,7 +31,7 @@ even more practice session</a>.
 <!-- -->
 </strong>
 <!-- -->
-EMP is today (Monday) from 5&ndash;7PM in Siebel 1404.
+EMP is Monday (tomorrow) from 5&ndash;7PM in Siebel 1404.
 <!-- -->
 It's a great chance to get more help in an setting where we can provide you
 with individualized support.

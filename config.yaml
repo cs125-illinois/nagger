@@ -1,2 +1,5 @@
 timezone: America/Chicago
 database: Spring2018
+weights:
+  MPs: 45
+  quizzes: 20

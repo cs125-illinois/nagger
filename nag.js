@@ -13,6 +13,7 @@ const replaceExt = require('replace-ext')
 const frontMatter = require('front-matter')
 const sift = require('sift')
 const promptly = require('promptly')
+const datalib = require('datalib')
 
 const htmlMinifier = require('html-minifier')
 const html_to_text = require('html-to-text')
@@ -191,6 +192,7 @@ let update = async (config) => {
   _.each(students, student => {
     student.name = student.name.full
     student.progress = {}
+    student.totals = {}
   })
   let MPs = {}
   let progress = client.db(config.database).collection('progress')
@@ -247,9 +249,14 @@ let update = async (config) => {
     }
   })
   _.each(students, student => {
+    let scores = []
+    student.totals.MPs = 0
     _.each(_.keys(MPs), MP => {
       if (!(student.MPGrades[MP])) {
         student.MPGrades[MP] = false
+      } else {
+        student.totals.MPs += student.MPGrades[MP]
+        scores.push(student.MPGrades[MP])
       }
     })
   })
@@ -278,11 +285,21 @@ let update = async (config) => {
     }
   })
   _.each(students, student => {
+    student.totals.quizzes = 0
     _.each(_.keys(quizzes), quiz => {
       if (!(student.quizGrades[quiz])) {
         student.quizGrades[quiz] = false
+      } else {
+        student.totals.quizzes += student.quizGrades[quiz]
       }
     })
+  })
+  _.each(students, student => {
+    student.totals.total = student.totals.quizzes + student.totals.MPs
+    let quizTotal = _.keys(quizzes).length * 100
+    let MPTotal = _.keys(MPs).length * 100
+    student.totals.average = (student.totals.quizzes / quizTotal * config.weights.quizzes) +
+      (student.totals.MPs / MPTotal * config.weights.MPs)
   })
 
   client.close()
