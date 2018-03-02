@@ -298,8 +298,8 @@ let update = async (config) => {
     student.totals.total = student.totals.quizzes + student.totals.MPs
     let quizTotal = _.keys(quizzes).length * 100
     let MPTotal = _.keys(MPs).length * 100
-    student.totals.average = (student.totals.quizzes / quizTotal * config.weights.quizzes) +
-      (student.totals.MPs / MPTotal * config.weights.MPs)
+    student.totals.average = ((student.totals.quizzes / quizTotal) * config.weights.quizzes) +
+      ((student.totals.MPs / MPTotal) * config.weights.MPs)
   })
 
   client.close()
