@@ -91,6 +91,9 @@ Promise.resolve()
     }
 
     log.debug(configuration.attributes.query)
+    if (!('active' in configuration.attributes.query)) {
+      configuration.attributes.query.active = true
+    }
     let toNag = sift(configuration.attributes.query, _.values(students))
     log.debug(`${ toNag.length } students to nag`)
 
@@ -142,7 +145,7 @@ Promise.resolve()
         noAnchorUrl: false
       })
       let email = {
-        from: '"CSE 125 Reminder Robot" <robot@cs125.cs.illinois.edu>',
+        from: '"CSE 125 Mail Robot" <robot@cs125.cs.illinois.edu>',
         bcc: config.bcc.join(","),
         subject: configuration.attributes.subject,
         html: html,
@@ -184,9 +187,9 @@ let update = async (config) => {
   let client = await mongo.connect(process.env.MONGO)
   let people = client.db(config.database).collection('people')
   let students = _.keyBy(await people.find({
-    student: true, active: true
+    student: true
   }).project({
-    email: 1, 'name.full': 1, _id: 0
+    email: 1, 'name.full': 1, active: 1, _id: 0
   }).toArray(), 'email')
 
   _.each(students, student => {
